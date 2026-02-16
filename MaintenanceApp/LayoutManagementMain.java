@@ -20,18 +20,12 @@ public class LayoutManagementMain {
 
             switch (choice) {
                 case 1:
-                    if (adminLogin()) {
-                        adminMenu();
-                    } else {
-                        System.out.println("Invalid admin credentials");
-                    }
+                    if (adminLogin()) adminMenu();
+                    else System.out.println("Invalid admin credentials");
                     break;
                 case 2:
-                    if (ownerLogin()) {
-                        ownerMenu();
-                    } else {
-                        System.out.println("Invalid owner credentials");
-                    }
+                    if (ownerLogin()) ownerMenu();
+                    else System.out.println("Invalid owner credentials");
                     break;
                 case 3:
                     System.out.println("Exiting application...");
@@ -50,7 +44,6 @@ public class LayoutManagementMain {
         sc.nextLine();
         System.out.print("Enter Password: ");
         String password = sc.nextLine();
-
         return AuthDAO.validateAdmin(id, password);
     }
 
@@ -77,7 +70,8 @@ public class LayoutManagementMain {
             System.out.println("1. Manage Owners");
             System.out.println("2. View All Sites");
             System.out.println("3. Maintenance");
-            System.out.println("4. Logout");
+            System.out.println("4. Manage Requests");
+            System.out.println("5. Logout");
             System.out.print("Enter choice: ");
 
             choice = sc.nextInt();
@@ -87,18 +81,21 @@ public class LayoutManagementMain {
                     manageOwnersMenu();
                     break;
                 case 2:
-                    System.out.println("View All Sites (with filters)");
+                    viewAllSitesMenu();
                     break;
                 case 3:
                     maintenanceMenu();
                     break;
                 case 4:
+                    manageRequestsMenu();
+                    break;
+                case 5:
                     System.out.println("Logging out...");
                     break;
                 default:
                     System.out.println("Invalid choice");
             }
-        } while (choice != 4);
+        } while (choice != 5);
     }
 
     /* ================= OWNER ================= */
@@ -176,7 +173,7 @@ public class LayoutManagementMain {
 
             switch (choice) {
                 case 1:
-                    System.out.println("Viewing all my sites");
+                    SiteDAO.viewSitesByOwner(loggedInOwnerId);
                     break;
                 case 2:
                     searchSiteMenu();
@@ -190,27 +187,69 @@ public class LayoutManagementMain {
         } while (choice != 3);
     }
 
-    static void updateSiteRequestMenu() {
+    static void searchSiteMenu() {
         int choice;
         do {
-            System.out.println("\n--- UPDATE SITE REQUEST ---");
-            System.out.println("1. Update Site Type");
-            System.out.println("2. Back");
+            System.out.println("\n--- SEARCH SITE ---");
+            System.out.println("1. Search by Site ID");
+            System.out.println("2. Search by Type");
+            System.out.println("3. Back");
             System.out.print("Enter choice: ");
 
             choice = sc.nextInt();
 
             switch (choice) {
                 case 1:
-                    System.out.println("Requesting site type update");
+                    System.out.print("Enter Site ID: ");
+                    int siteId = sc.nextInt();
+                    SiteDAO.viewSiteById(siteId);
                     break;
                 case 2:
+                    sc.nextLine();
+                    System.out.print("Enter Site Type: ");
+                    String type = sc.nextLine();
+                    SiteDAO.viewSitesByType(type);
+                    break;
+                case 3:
                     System.out.println("Returning...");
                     break;
                 default:
                     System.out.println("Invalid choice");
             }
-        } while (choice != 2);
+        } while (choice != 3);
+    }
+
+    static void updateSiteRequestMenu() {
+        int choice;
+        do {
+            System.out.println("--- UPDATE SITE REQUEST ---");
+            System.out.println("1. Request Site Type Change");
+            System.out.println("2. View My Site Requests");
+            System.out.println("3. Back");
+            System.out.print("Enter choice: ");
+
+            choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    sc.nextLine();
+                    System.out.print("Enter Site ID: ");
+                    int siteId = sc.nextInt();
+                    sc.nextLine();
+                    System.out.print("Enter New Site Type: ");
+                    String newType = sc.nextLine();
+                    RequestDAO.createSiteTypeRequest(loggedInOwnerId, siteId, newType);
+                    break;
+                case 2:
+                    RequestDAO.viewRequestsByOwner(loggedInOwnerId);
+                    break;
+                case 3:
+                    System.out.println("Returning...");
+                    break;
+                default:
+                    System.out.println("Invalid choice");
+            }
+        } while (choice != 3);
     }
 
     /* ================= OWNER : PROFILE ================= */
@@ -220,9 +259,8 @@ public class LayoutManagementMain {
         do {
             System.out.println("\n--- MY PROFILE ---");
             System.out.println("1. View Profile");
-            System.out.println("2. Update Profile (Request)");
-            System.out.println("3. Change Password");
-            System.out.println("4. Back");
+            System.out.println("2. Change Password");
+            System.out.println("3. Back");
             System.out.print("Enter choice: ");
 
             choice = sc.nextInt();
@@ -232,18 +270,15 @@ public class LayoutManagementMain {
                     OwnerDAO.viewOwnerProfile(loggedInOwnerId);
                     break;
                 case 2:
-                    updateProfileRequestMenu();
-                    break;
-                case 3:
                     requestPasswordChangeMenu();
                     break;
-                case 4:
+                case 3:
                     System.out.println("Returning...");
                     break;
                 default:
                     System.out.println("Invalid choice");
             }
-        } while (choice != 4);
+        } while (choice != 3);
     }
 
     static void requestPasswordChangeMenu() {
@@ -261,20 +296,19 @@ public class LayoutManagementMain {
         }
 
         boolean updated = AuthDAO.changePassword(loggedInOwnerId, currentPassword, newPassword);
-        if (updated) {
-            System.out.println("Password changed successfully");
-        } else {
-            System.out.println("Current password incorrect");
-        }
+        if (updated) System.out.println("Password changed successfully");
+        else System.out.println("Current password incorrect");
     }
 
-    static void updateProfileRequestMenu() {
+    /* ================= ADMIN : SITES ================= */
+
+    static void viewAllSitesMenu() {
         int choice;
         do {
-            System.out.println("\n--- UPDATE PROFILE REQUEST ---");
-            System.out.println("1. Update Name");
-            System.out.println("2. Update Phone");
-            System.out.println("3. Update Email");
+            System.out.println("\n===== VIEW ALL SITES =====");
+            System.out.println("1. View All Sites");
+            System.out.println("2. Filter by Type");
+            System.out.println("3. Filter by Ownership Status");
             System.out.println("4. Back");
             System.out.print("Enter choice: ");
 
@@ -282,13 +316,19 @@ public class LayoutManagementMain {
 
             switch (choice) {
                 case 1:
-                    System.out.println("Requesting name update");
+                    SiteDAO.viewAllSites();
                     break;
                 case 2:
-                    System.out.println("Requesting phone update");
+                    sc.nextLine();
+                    System.out.print("Enter Site Type: ");
+                    String type = sc.nextLine();
+                    SiteDAO.viewSitesByType(type);
                     break;
                 case 3:
-                    System.out.println("Requesting email update");
+                    System.out.println("1. Owned Sites");
+                    System.out.println("2. Unowned Sites");
+                    int status = sc.nextInt();
+                    SiteDAO.viewSitesByOwnership(status == 1);
                     break;
                 case 4:
                     System.out.println("Returning...");
@@ -297,228 +337,6 @@ public class LayoutManagementMain {
                     System.out.println("Invalid choice");
             }
         } while (choice != 4);
-    }
-
-    /* ================= OWNER : MAINTENANCE ================= */
-
-    static void ownerMaintenanceMenu() {
-        int choice;
-        do {
-            System.out.println("\n--- MAINTENANCE ---");
-            System.out.println("1. View Pending Amount");
-            System.out.println("2. Payment History");
-            System.out.println("3. Back");
-            System.out.print("Enter choice: ");
-
-            choice = sc.nextInt();
-
-            switch (choice) {
-                case 1:
-                    ownerPendingMenu();
-                    break;
-                case 2:
-                    ownerPaymentHistoryMenu();
-                    break;
-                case 3:
-                    System.out.println("Returning...");
-                    break;
-                default:
-                    System.out.println("Invalid choice");
-            }
-        } while (choice != 3);
-    }
-
-    static void ownerPendingMenu() {
-        int choice;
-        do {
-            System.out.println("\n--- VIEW PENDING AMOUNT ---");
-            System.out.println("1. All Sites");
-            System.out.println("2. Search Site");
-            System.out.println("3. Back");
-            System.out.print("Enter choice: ");
-
-            choice = sc.nextInt();
-
-            switch (choice) {
-                case 1:
-                    System.out.println("Viewing pending amount for all sites");
-                    break;
-                case 2:
-                    searchSiteMenu();
-                    break;
-                case 3:
-                    System.out.println("Returning...");
-                    break;
-                default:
-                    System.out.println("Invalid choice");
-            }
-        } while (choice != 3);
-    }
-
-    static void ownerPaymentHistoryMenu() {
-        int choice;
-        do {
-            System.out.println("\n--- PAYMENT HISTORY ---");
-            System.out.println("1. All Payments");
-            System.out.println("2. Search Site");
-            System.out.println("3. Back");
-            System.out.print("Enter choice: ");
-
-            choice = sc.nextInt();
-
-            switch (choice) {
-                case 1:
-                    System.out.println("Viewing all payment history");
-                    break;
-                case 2:
-                    searchSiteMenu();
-                    break;
-                case 3:
-                    System.out.println("Returning...");
-                    break;
-                default:
-                    System.out.println("Invalid choice");
-            }
-        } while (choice != 3);
-    }
-
-    /* ================= COMMON ================= */
-
-    static void searchSiteMenu() {
-        int choice;
-        do {
-            System.out.println("\n--- SEARCH SITE ---");
-            System.out.println("1. By ID");
-            System.out.println("2. By Type");
-            System.out.println("3. Back");
-            System.out.print("Enter choice: ");
-
-            choice = sc.nextInt();
-
-            switch (choice) {
-                case 1:
-                    System.out.println("Search by Site ID");
-                    break;
-                case 2:
-                    System.out.println("Search by Site Type");
-                    break;
-                case 3:
-                    System.out.println("Returning...");
-                    break;
-                default:
-                    System.out.println("Invalid choice");
-            }
-        } while (choice != 3);
-    }
-
-    /* ================= ADMIN : MAINTENANCE ================= */
-
-    static void maintenanceMenu() {
-        int choice;
-        do {
-            System.out.println("\n===== MAINTENANCE =====");
-            System.out.println("1. View Pending");
-            System.out.println("2. Collect Payment");
-            System.out.println("3. Reports");
-            System.out.println("4. Back");
-            System.out.print("Enter choice: ");
-
-            choice = sc.nextInt();
-
-            switch (choice) {
-                case 1:
-                    viewPendingMenu();
-                    break;
-                case 2:
-                    collectPaymentMenu();
-                    break;
-                case 3:
-                    reportsMenu();
-                    break;
-                case 4:
-                    System.out.println("Returning...");
-                    break;
-                default:
-                    System.out.println("Invalid choice");
-            }
-        } while (choice != 4);
-    }
-
-    static void viewPendingMenu() {
-        int choice;
-        do {
-            System.out.println("\n--- VIEW PENDING ---");
-            System.out.println("1. All Sites");
-            System.out.println("2. Search Site");
-            System.out.println("3. Back");
-            System.out.print("Enter choice: ");
-
-            choice = sc.nextInt();
-
-            switch (choice) {
-                case 1:
-                    System.out.println("Viewing pending payments for all sites");
-                    break;
-                case 2:
-                    searchSiteMenu();
-                    break;
-                case 3:
-                    System.out.println("Returning...");
-                    break;
-                default:
-                    System.out.println("Invalid choice");
-            }
-        } while (choice != 3);
-    }
-
-    static void collectPaymentMenu() {
-        int choice;
-        do {
-            System.out.println("\n--- COLLECT PAYMENT ---");
-            System.out.println("1. All Sites");
-            System.out.println("2. Search Site");
-            System.out.println("3. Back");
-            System.out.print("Enter choice: ");
-
-            choice = sc.nextInt();
-
-            switch (choice) {
-                case 1:
-                    System.out.println("Collecting payment from all sites");
-                    break;
-                case 2:
-                    searchSiteMenu();
-                    break;
-                case 3:
-                    System.out.println("Returning...");
-                    break;
-                default:
-                    System.out.println("Invalid choice");
-            }
-        } while (choice != 3);
-    }
-
-    static void reportsMenu() {
-        int choice;
-        do {
-            System.out.println("\n--- REPORTS ---");
-            System.out.println("1. Paid Sites");
-            System.out.println("2. Back");
-            System.out.print("Enter choice: ");
-
-            choice = sc.nextInt();
-
-            switch (choice) {
-                case 1:
-                    System.out.println("Showing all paid maintenance records");
-                    break;
-                case 2:
-                    System.out.println("Returning...");
-                    break;
-                default:
-                    System.out.println("Invalid choice");
-            }
-        } while (choice != 2);
     }
 
     /* ================= ADMIN : OWNERS ================= */
@@ -531,7 +349,8 @@ public class LayoutManagementMain {
             System.out.println("2. View All Owners");
             System.out.println("3. Edit Owner");
             System.out.println("4. Remove Owner");
-            System.out.println("5. Back");
+            System.out.println("5. Assign / Unassign Site");
+            System.out.println("6. Back");
             System.out.print("Enter choice: ");
 
             choice = sc.nextInt();
@@ -541,7 +360,7 @@ public class LayoutManagementMain {
                     addOwner();
                     break;
                 case 2:
-                    viewAllOwners();
+                    OwnerDAO.viewAllOwners();
                     break;
                 case 3:
                     editOwner();
@@ -550,18 +369,15 @@ public class LayoutManagementMain {
                     removeOwner();
                     break;
                 case 5:
+                    assignUnassignMenu();
+                    break;
+                case 6:
                     System.out.println("Returning...");
                     break;
                 default:
                     System.out.println("Invalid choice");
             }
-        } while (choice != 5);
-    }
-
-    /* ================= ADMIN : OWNERS ACTIONS ================= */
-
-    static void viewAllOwners() {
-        OwnerDAO.viewAllOwners();
+        } while (choice != 6);
     }
 
     static void addOwner() {
@@ -569,25 +385,18 @@ public class LayoutManagementMain {
         System.out.print("Enter Owner ID: ");
         int ownerId = sc.nextInt();
         sc.nextLine();
-
         System.out.print("Enter Owner Name: ");
         String name = sc.nextLine();
-
         System.out.print("Enter Phone: ");
         String phone = sc.nextLine();
-
         System.out.print("Enter Email: ");
         String email = sc.nextLine();
-
         System.out.print("Set Initial Password: ");
         String password = sc.nextLine();
 
         boolean success = OwnerDAO.addOwner(ownerId, name, phone, email, password);
-        if (success) {
-            System.out.println("Owner added successfully");
-        } else {
-            System.out.println("Failed to add owner");
-        }
+        if (success) System.out.println("Owner added successfully");
+        else System.out.println("Failed to add owner");
     }
 
     static void editOwner() {
@@ -610,10 +419,8 @@ public class LayoutManagementMain {
         System.out.println("(leave blank to keep same)");
         System.out.print("Enter New Name: ");
         String name = sc.nextLine();
-
         System.out.print("Enter New Phone: ");
         String phone = sc.nextLine();
-
         System.out.print("Enter New Email: ");
         String email = sc.nextLine();
 
@@ -622,11 +429,8 @@ public class LayoutManagementMain {
         if (email.isBlank()) email = owner.getEmail();
 
         boolean updated = OwnerDAO.editOwner(ownerId, name, phone, email);
-        if (updated) {
-            System.out.println("Owner updated successfully");
-        } else {
-            System.out.println("Update failed");
-        }
+        if (updated) System.out.println("Owner updated successfully");
+        else System.out.println("Update failed");
     }
 
     static void removeOwner() {
@@ -652,13 +456,311 @@ public class LayoutManagementMain {
 
         if (confirm.equalsIgnoreCase("Y")) {
             boolean removed = OwnerDAO.removeOwner(ownerId);
-            if (removed) {
-                System.out.println("Owner removed successfully");
-            } else {
-                System.out.println("Owner removal failed");
-            }
+            if (removed) System.out.println("Owner removed successfully");
+            else System.out.println("Owner removal failed");
         } else {
             System.out.println("Deletion cancelled");
         }
+    }
+
+    /* ================= ADMIN : ASSIGN / UNASSIGN ================= */
+
+    static void assignUnassignMenu() {
+        int choice;
+        do {
+            System.out.println("\n--- ASSIGN / UNASSIGN SITE ---");
+            System.out.println("1. Assign Site to Owner");
+            System.out.println("2. Unassign Site from Owner");
+            System.out.println("3. Back");
+            System.out.print("Enter choice: ");
+
+            choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    assignSiteToOwner();
+                    break;
+                case 2:
+                    unassignSiteFromOwner();
+                    break;
+                case 3:
+                    System.out.println("Returning...");
+                    break;
+                default:
+                    System.out.println("Invalid choice");
+            }
+        } while (choice != 3);
+    }
+
+    static void assignSiteToOwner() {
+        System.out.print("Enter Site ID: ");
+        int siteId = sc.nextInt();
+        System.out.print("Enter Owner ID: ");
+        int ownerId = sc.nextInt();
+
+        boolean success = SiteDAO.assignSite(siteId, ownerId);
+        if (success) System.out.println("Site assigned successfully");
+        else System.out.println("Site assignment failed");
+    }
+
+    static void unassignSiteFromOwner() {
+        System.out.print("Enter Site ID: ");
+        int siteId = sc.nextInt();
+
+        boolean success = SiteDAO.unassignSite(siteId);
+        if (success) System.out.println("Site unassigned successfully");
+        else System.out.println("Site unassignment failed");
+    }
+        /* ================= ADMIN : REQUESTS ================= */
+
+    static void manageRequestsMenu() {
+        int choice;
+        do {
+            System.out.println("===== MANAGE REQUESTS =====");
+            System.out.println("1. View All Pending Requests");
+            System.out.println("2. Approve Request");
+            System.out.println("3. Reject Request");
+            System.out.println("4. Back");
+            System.out.print("Enter choice: ");
+
+            choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    RequestDAO.viewAllPendingRequests();
+                    break;
+                case 2:
+                    System.out.print("Enter Request ID to approve: ");
+                    int approveId = sc.nextInt();
+                    RequestDAO.approveRequest(approveId);
+                    break;
+                case 3:
+                    System.out.print("Enter Request ID to reject: ");
+                    int rejectId = sc.nextInt();
+                    RequestDAO.rejectRequest(rejectId);
+                    break;
+                case 4:
+                    System.out.println("Returning...");
+                    break;
+                default:
+                    System.out.println("Invalid choice");
+            }
+        } while (choice != 4);
+    }
+
+    /* ================= OWNER : MAINTENANCE ================= */
+
+    static void ownerMaintenanceMenu() {
+        int choice;
+        do {
+            System.out.println("\n--- OWNER MAINTENANCE ---");
+            System.out.println("1. View My Pending Bills");
+            System.out.println("2. Pay Maintenance");
+            System.out.println("3. Back");
+            System.out.print("Enter choice: ");
+
+            choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    MaintenanceDAO.viewPendingByOwner(loggedInOwnerId);
+                    break;
+                case 2:
+                    ownerPaymentMenu();
+                    break;
+                case 3:
+                    System.out.println("Returning...");
+                    break;
+                default:
+                    System.out.println("Invalid choice");
+            }
+        } while (choice != 3);
+    }
+
+    static void ownerPaymentMenu() {
+        int choice;
+        do {
+            System.out.println("\n--- PAY MAINTENANCE ---");
+            System.out.println("1. Pay Full Amount");
+            System.out.println("2. Pay Partial Amount");
+            System.out.println("3. Back");
+            System.out.print("Enter choice: ");
+
+            choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    payFullAmount();
+                    break;
+                case 2:
+                    payPartialAmount();
+                    break;
+                case 3:
+                    System.out.println("Returning...");
+                    break;
+                default:
+                    System.out.println("Invalid choice");
+            }
+        } while (choice != 3);
+    }
+
+    static void payFullAmount() {
+        System.out.print("Enter Bill ID to pay fully: ");
+        int billId = sc.nextInt();
+        MaintenanceDAO.payFullAmount(loggedInOwnerId, billId);
+    }
+
+    static void payPartialAmount() {
+        System.out.print("Enter Bill ID: ");
+        int billId = sc.nextInt();
+        System.out.print("Enter Amount to Pay: ");
+        double amount = sc.nextDouble();
+        MaintenanceDAO.payPartialAmount(loggedInOwnerId, billId, java.math.BigDecimal.valueOf(amount));
+    }
+
+    /* ================= ADMIN : MAINTENANCE ================= */
+
+    static void maintenanceMenu() {
+        int choice;
+        do {
+            System.out.println("\n===== MAINTENANCE =====");
+            System.out.println("1. View Pending");
+            System.out.println("2. Collect Payment");
+            System.out.println("3. Reports (Transactions)");
+            System.out.println("4. Back");
+            System.out.print("Enter choice: ");
+
+            choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    viewPendingMenu();
+                    break;
+                case 2:
+                    collectPaymentMenu();
+                    break;
+                case 3:
+                    maintenanceReportsMenu();
+                    break;
+                case 4:
+                    System.out.println("Returning...");
+                    break;
+                default:
+                    System.out.println("Invalid choice");
+            }
+        } while (choice != 4);
+    }
+
+    static void viewPendingMenu() {
+        int choice;
+        do {
+            System.out.println("\n--- VIEW PENDING ---");
+            System.out.println("1. View All");
+            System.out.println("2. View by Type");
+            System.out.println("3. View by Owner");
+            System.out.println("4. View by Size");
+            System.out.println("5. Back");
+            System.out.print("Enter choice: ");
+
+            choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    MaintenanceDAO.viewPendingAll();
+                    break;
+                case 2:
+                    sc.nextLine();
+                    System.out.print("Enter Site Type: ");
+                    String type = sc.nextLine();
+                    MaintenanceDAO.viewPendingByType(type);
+                    break;
+                case 3:
+                    System.out.print("Enter Owner ID: ");
+                    int ownerId = sc.nextInt();
+                    MaintenanceDAO.viewPendingByOwner(ownerId);
+                    break;
+                case 4:
+                    System.out.print("Enter Minimum Area: ");
+                    double area = sc.nextDouble();
+                    MaintenanceDAO.viewPendingBySize(area);
+                    break;
+                case 5:
+                    System.out.println("Returning...");
+                    break;
+                default:
+                    System.out.println("Invalid choice");
+            }
+        } while (choice != 5);
+    }
+
+    static void collectPaymentMenu() {
+        int choice;
+        do {
+            System.out.println("\n--- COLLECT PAYMENT ---");
+            System.out.println("1. Collect from All");
+            System.out.println("2. Collect from Type");
+            System.out.println("3. Collect from Owner");
+            System.out.println("4. Collect from Size");
+            System.out.println("5. Back");
+            System.out.print("Enter choice: ");
+
+            choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    MaintenanceDAO.collectFromAll();
+                    break;
+                case 2:
+                    sc.nextLine();
+                    System.out.print("Enter Site Type: ");
+                    String type = sc.nextLine();
+                    MaintenanceDAO.collectFromType(type);
+                    break;
+                case 3:
+                    System.out.print("Enter Owner ID: ");
+                    int ownerId = sc.nextInt();
+                    MaintenanceDAO.collectFromOwner(ownerId);
+                    break;
+                case 4:
+                    System.out.print("Enter Minimum Area: ");
+                    double area = sc.nextDouble();
+                    MaintenanceDAO.collectFromSize(area);
+                    break;
+                case 5:
+                    System.out.println("Returning...");
+                    break;
+                default:
+                    System.out.println("Invalid choice");
+            }
+        } while (choice != 5);
+    }
+
+    static void maintenanceReportsMenu() {
+        int choice;
+        do {
+            System.out.println("\n--- MAINTENANCE REPORTS ---");
+            System.out.println("1. View All Transactions");
+            System.out.println("2. View by Owner");
+            System.out.println("3. Back");
+            System.out.print("Enter choice: ");
+
+            choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    MaintenanceDAO.viewAllTransactions();
+                    break;
+                case 2:
+                    System.out.print("Enter Owner ID: ");
+                    int ownerId = sc.nextInt();
+                    MaintenanceDAO.viewTransactionsByOwner(ownerId);
+                    break;
+                case 3:
+                    System.out.println("Returning...");
+                    break;
+                default:
+                    System.out.println("Invalid choice");
+            }
+        } while (choice != 3);
     }
 }
