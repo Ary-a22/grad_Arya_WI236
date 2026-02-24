@@ -10,7 +10,7 @@ public class CalculatorJenkinsApplication {
 		SpringApplication.run(CalculatorJenkinsApplication.class, args);
 
 		Calculator calculator = new Calculator();
-		int sum = calculator.add(5, 4);
+		int sum = calculator.add(10, 4);
 		int difference = calculator.subtract(5, 4);
 		int product = calculator.multiply(5, 4);
 		System.out.println("Sum: " + sum);
