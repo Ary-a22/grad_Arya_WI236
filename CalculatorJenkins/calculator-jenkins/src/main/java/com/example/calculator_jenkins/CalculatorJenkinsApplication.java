@@ -11,7 +11,7 @@ public class CalculatorJenkinsApplication {
 
 		Calculator calculator = new Calculator();
 		int sum = calculator.add(5, 4);
-		int difference = calculator.subtract(5, 3);
+		int difference = calculator.subtract(5, 4);
 		int product = calculator.multiply(5, 3);
 		System.out.println("Sum: " + sum);
 		System.out.println("Difference: " + difference);
