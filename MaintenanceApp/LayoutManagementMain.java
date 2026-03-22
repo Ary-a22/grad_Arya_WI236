@@ -259,8 +259,10 @@ public class LayoutManagementMain {
         do {
             System.out.println("\n--- MY PROFILE ---");
             System.out.println("1. View Profile");
-            System.out.println("2. Change Password");
-            System.out.println("3. Back");
+            System.out.println("2. Request Profile Update");   // NEW
+            System.out.println("3. View My Requests");         // NEW
+            System.out.println("4. Change Password");
+            System.out.println("5. Back");
             System.out.print("Enter choice: ");
 
             choice = sc.nextInt();
@@ -270,9 +272,26 @@ public class LayoutManagementMain {
                     OwnerDAO.viewOwnerProfile(loggedInOwnerId);
                     break;
                 case 2:
+                    sc.nextLine();
+                    System.out.print("Enter New Name: ");
+                    String name = sc.nextLine();
+                    System.out.print("Enter New Phone: ");
+                    String phone = sc.nextLine();
+                    System.out.print("Enter New Email: ");
+                    String email = sc.nextLine();
+
+                    RequestDAO.createOwnerUpdateRequest(loggedInOwnerId, name, phone, email);
+                    break;
+
+                case 3:
+                    RequestDAO.viewOwnerProfileRequests(loggedInOwnerId);
+                    break;
+
+                case 4:
                     requestPasswordChangeMenu();
                     break;
-                case 3:
+
+                case 5:
                     System.out.println("Returning...");
                     break;
                 default:
@@ -517,9 +536,9 @@ public class LayoutManagementMain {
         int choice;
         do {
             System.out.println("===== MANAGE REQUESTS =====");
-            System.out.println("1. View All Pending Requests");
-            System.out.println("2. Approve Request");
-            System.out.println("3. Reject Request");
+            System.out.println("1. View Owner Requests");     // NEW
+            System.out.println("2. Approve Owner Request");   // NEW
+            System.out.println("3. Reject Owner Request");    // NEW
             System.out.println("4. Back");
             System.out.print("Enter choice: ");
 
@@ -527,17 +546,19 @@ public class LayoutManagementMain {
 
             switch (choice) {
                 case 1:
-                    RequestDAO.viewAllPendingRequests();
+                    RequestDAO.viewAllOwnerRequests();
                     break;
+
                 case 2:
-                    System.out.print("Enter Request ID to approve: ");
-                    int approveId = sc.nextInt();
-                    RequestDAO.approveRequest(approveId);
+                    System.out.print("Enter Request ID: ");
+                    int approveOwnerId = sc.nextInt();
+                    RequestDAO.approveOwnerRequest(approveOwnerId);
                     break;
+
                 case 3:
-                    System.out.print("Enter Request ID to reject: ");
-                    int rejectId = sc.nextInt();
-                    RequestDAO.rejectRequest(rejectId);
+                    System.out.print("Enter Request ID: ");
+                    int rejectOwnerId = sc.nextInt();
+                    RequestDAO.rejectOwnerRequest(rejectOwnerId);
                     break;
                 case 4:
                     System.out.println("Returning...");

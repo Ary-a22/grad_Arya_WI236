@@ -6,7 +6,7 @@ public class DBConfig {
 
     private static final String URL = "jdbc:postgresql://localhost:5432/LayoutManagementSystem";
     private static final String USER = "postgres";
-    private static final String PASSWORD = "Zry@2004";
+    private static final String PASSWORD = "postgres";
 
     static {
         try {
